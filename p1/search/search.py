@@ -72,6 +72,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+# @profile
 def depthFirstSearch(problem: SearchProblem):
     """
     Search the deepest nodes in the search tree first.
@@ -88,40 +89,118 @@ def depthFirstSearch(problem: SearchProblem):
     """
     "*** YOUR CODE HERE ***"
     # util.raiseNotDefined()
-    # search node must contain a state, a path to the state from the start and visit state
+    """
+    a node in the frontier:
+        node.state: current state
+        node.parent: parent node that generates this node
+        node.action: action taken to reach this node from parent
+    how to avoid repeated states: P87
+    """
+    start = (problem.getStartState(), None, None)  # state, parent, action 
     frontier = util.Stack()
-    frontier.push((problem.getStartState(), [], set()))
+    frontier.push(start)
+    reached = set()
 
-    def expand(problem: SearchProblem, node: tuple):
+    def Expand(problem: SearchProblem, node: tuple):
         state = node[0]
-        path = node[1]
-        visited = node[2]
         for successor, action, _ in problem.getSuccessors(state):
-            if successor not in visited:
-                new_path = path + [action]
-                new_vsited = visited.copy()
-                new_vsited.add(successor)
-                frontier.push((successor, new_path, new_vsited))
+            yield (successor, node, action)
 
-    
     while not frontier.isEmpty():
         node = frontier.pop()
+        reached.add(node[0])
         if problem.isGoalState(node[0]):
-            return node[1]
-        expand(problem, node)
-    return None 
+            actions = []
+            while node[1] is not None:
+                actions.append(node[2])
+                node = node[1]
+            actions.reverse()
+            return actions
+        for child in Expand(problem, node):
+            if child[0] not in reached:
+                frontier.push(child)
+    return []
     
 
 
+# @profile
 def breadthFirstSearch(problem: SearchProblem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    """
+    a node in the frontier:
+        node.state: current state
+        node.parent: parent node that generates this node
+        node.action: action taken to reach this node from parent
+    how to avoid repeated states: P87
+    """
+    start = (problem.getStartState(), None, None)  # state, parent, action, path_cost
+    frontier = util.Queue()
+    frontier.push(start)
+    reached = {start[0], }
+
+    # @profile
+    def Expand(problem: SearchProblem, node: tuple):
+        state = node[0]
+        for successor, action, _ in problem.getSuccessors(state):
+            yield (successor, node, action)
+
+    while not frontier.isEmpty():
+        node = frontier.pop()
+        if problem.isGoalState(node[0]):
+            actions = []
+            while node[1] is not None:
+                actions.append(node[2])
+                node = node[1]
+            actions.reverse()
+            return actions
+        for child in Expand(problem, node):
+            state = child[0]
+            if state not in reached:
+                reached.add(state)
+                frontier.push(child)
+    return []
+
 
 def uniformCostSearch(problem: SearchProblem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    """
+    a node in the frontier:
+        node.state: current state
+        node.parent: parent node that generates this node
+        node.action: action taken to reach this node from parent
+        node.path_cost: total cost from start state to this node
+    how to avoid repeated states: P87
+    """
+    start = (problem.getStartState(), None, None, 0)  # state, parent, action, path_cost
+    frontier = util.PriorityQueue()
+    frontier.push(start[0], start[3])
+    reached = { start[0]: start }
+
+    def Expand(problem: SearchProblem, node: tuple):
+        state = node[0]
+        for successor, action, step_cost in problem.getSuccessors(state):
+            path_cost = node[3] + step_cost
+            yield (successor, node, action, path_cost)
+
+    while not frontier.isEmpty():
+        state = frontier.pop()
+        node = reached[state]
+        if problem.isGoalState(node[0]):
+            actions = []
+            while node[1] is not None:
+                actions.append(node[2])
+                node = node[1]
+            actions.reverse()
+            return actions
+        for child in Expand(problem, node):
+            if child[0] not in reached or child[3] < reached[child[0]][3]:
+                reached[child[0]] = child
+                frontier.update(child[0], child[3])
+    return []
 
 def nullHeuristic(state, problem=None):
     """
