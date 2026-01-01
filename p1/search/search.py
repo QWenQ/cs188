@@ -212,7 +212,42 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    """
+    a node in the frontier:
+        node.state: current state
+        node.parent: parent node that generates this node
+        node.action: action taken to reach this node from parent
+        node.path_cost: total cost from start state to this node
+        node.heuristic: heuristic value of this node
+    how to avoid repeated states: P87
+    """
+    start = (problem.getStartState(), None, None, 0, heuristic(problem.getStartState(), problem))
+    frontier = util.PriorityQueue()
+    frontier.push(start[0], start[3] + start[4])
+    reached = { start[0]: start }
+
+    def Expand(problem: SearchProblem, node: tuple):
+        state = node[0]
+        for successor, action, step_cost in problem.getSuccessors(state):
+            path_cost = node[3] + step_cost
+            yield (successor, node, action, path_cost, heuristic(successor, problem))
+
+    while not frontier.isEmpty():
+        state = frontier.pop()
+        node = reached[state]
+        if problem.isGoalState(node[0]):
+            actions = []
+            while node[1] is not None:
+                actions.append(node[2])
+                node = node[1]
+            actions.reverse()
+            return actions
+        for child in Expand(problem, node):
+            if child[0] not in reached or (child[3] + child[4]) < (reached[child[0]][3]+ reached[child[0]][4]):
+                reached[child[0]] = child
+                frontier.update(child[0], child[3] + child[4])
+    return []
 
 
 # Abbreviations
