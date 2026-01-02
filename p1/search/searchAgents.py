@@ -388,7 +388,7 @@ def cornersHeuristic(state: Any, problem: CornersProblem):
     # heuristicVal = 0
     currentPosition = position
 
-    # MST approach
+    # Greedy approach
     # while unvisitedCorners:
     #     distances = [(util.manhattanDistance(currentPosition, corner), corner) for corner in unvisitedCorners]
     #     minDistance, closestCorner = min(distances)
@@ -495,8 +495,54 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
     problem.heuristicInfo['wallCount']
     """
     position, foodGrid = state
-    "*** YOUR CODE HERE ***"
-    return 0
+    foods = foodGrid.asList()
+    
+    if not foods:
+        return 0
+    
+    # Calculate MST cost of connecting all food dots and add distance to closest food
+    if len(foods) == 1:
+        # If there's only one food, return distance to it
+        return util.manhattanDistance(position, foods[0])
+    
+    # Build MST of food positions
+    # Use Prim's algorithm to find MST
+    unvisited = set(foods)
+    visited = set()
+    
+    # Start from any food location
+    current = foods[0]
+    visited.add(current)
+    unvisited.remove(current)
+    
+    total_mst_cost = 0
+    
+    # Prim's algorithm
+    while unvisited:
+        min_edge_cost = float('inf')
+        next_food = None
+        
+        # Find the closest unvisited food to any visited food
+        for unvisited_food in unvisited:
+            for visited_food in visited:
+                dist = util.manhattanDistance(unvisited_food, visited_food)
+                if dist < min_edge_cost:
+                    min_edge_cost = dist
+                    next_food = unvisited_food
+        
+        # Add the closest food to MST
+        visited.add(next_food)
+        unvisited.remove(next_food)
+        total_mst_cost += min_edge_cost
+    
+    # Find the closest food from current position to start the collection
+    min_food_dist = min(util.manhattanDistance(position, food) for food in foods)
+    
+    return min_food_dist + total_mst_cost
+
+    # Maximun manhattan distance approach
+    # distances = [util.manhattanDistance(position, food) for food in foods]
+    # return max(distances) if distances else 0
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
