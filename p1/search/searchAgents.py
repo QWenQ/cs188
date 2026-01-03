@@ -525,7 +525,8 @@ def foodHeuristic(state: Tuple[Tuple, List[List]], problem: FoodSearchProblem):
         # Find the closest unvisited food to any visited food
         for unvisited_food in unvisited:
             for visited_food in visited:
-                dist = util.manhattanDistance(unvisited_food, visited_food)
+                # dist = util.manhattanDistance(unvisited_food, visited_food)
+                dist = mazeDistance(unvisited_food, visited_food, problem.startingGameState)
                 if dist < min_edge_cost:
                     min_edge_cost = dist
                     next_food = unvisited_food
