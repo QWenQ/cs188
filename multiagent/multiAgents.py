@@ -69,13 +69,44 @@ class ReflexAgent(Agent):
         """
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
+        curPos = currentGameState.getPacmanPosition()
         newPos = successorGameState.getPacmanPosition()
         newFood = successorGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
+        # Print out the extracted information
+        # print("curPos:", curPos)
+        # print("newPos:", newPos)
+        # print("newFood:")
+        # print(newFood)
+        # print("newGhostStates:", newGhostStates)
+        # print("newScaredTimes:", newScaredTimes)
+        # print a new empty line to separate different calls to the evaluation function
+        # print()
+
+
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # return successorGameState.getScore()
+        values: float = successorGameState.getScore()
+        # get reciprocal of closest food distance
+        foodList = newFood.asList()
+        if len(foodList) > 0:
+            closestFoodDistance = min([manhattanDistance(newPos, food) for food in foodList])
+            values += 1.0 / (closestFoodDistance + 1)
+        # get reciprocal of closest ghost distance
+        ghostDistances = [manhattanDistance(newPos, ghostState.getPosition()) for ghostState in newGhostStates]
+        for ghostDistance in ghostDistances:
+            if ghostDistance > 0:
+                values -= 1.0 / (ghostDistance + 1)
+        # get reciprocal of scared ghost distance, if scared
+        for ghostState, scaredTime in zip(newGhostStates, newScaredTimes):
+            if scaredTime > 0:
+                ghostDistance = manhattanDistance(newPos, ghostState.getPosition())
+                if ghostDistance > 0:
+                    values += 1.0 / (ghostDistance + 1)
+
+        return values
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
