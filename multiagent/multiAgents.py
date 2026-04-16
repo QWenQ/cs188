@@ -167,7 +167,42 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        # get legal actions for pacman
+        legalActions = gameState.getLegalActions(0)
+        # get the action that leads to the best value
+        bestAction = None
+        bestValue = float('-inf')
+        for action in legalActions:
+            successorGameState = gameState.generateSuccessor(0, action)
+            value = self.value(successorGameState, 1, 0)
+            if value > bestValue:
+                bestValue = value
+                bestAction = action
+        return bestAction
+
+
+    def value(self, gameState: GameState, agentIndex: int, depth: int):
+        if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            return self.evaluationFunction(gameState)
+        if agentIndex == 0:
+            return self.maxValue(gameState, agentIndex, depth)
+        else:
+            return self.minValue(gameState, agentIndex, depth)
+    
+    def maxValue(self, gameState: GameState, agentIndex: int, depth: int):
+        v = float('-inf')
+        for action in gameState.getLegalActions(agentIndex):
+            successorGameState = gameState.generateSuccessor(agentIndex, action)
+            v = max(v, self.value(successorGameState, (agentIndex + 1) % gameState.getNumAgents(), depth + (agentIndex + 1) // gameState.getNumAgents()))
+        return v
+    
+    def minValue(self, gameState: GameState, agentIndex: int, depth: int):
+        v = float('inf')
+        for action in gameState.getLegalActions(agentIndex):
+            successorGameState = gameState.generateSuccessor(agentIndex, action)
+            v = min(v, self.value(successorGameState, (agentIndex + 1) % gameState.getNumAgents(), depth + (agentIndex + 1) // gameState.getNumAgents()))
+        return v
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
