@@ -214,7 +214,49 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        # get legal actions for pacman
+        legalActions = gameState.getLegalActions(0)
+        # get the action that leads to the best value
+        bestAction = None
+        bestValue = float('-inf')
+        # breakpoint()
+        for action in legalActions:
+            successorGameState = gameState.generateSuccessor(0, action)
+            value = self.value(successorGameState, 1, 0, bestValue, float('inf'))
+            if value > bestValue:
+                bestValue = value
+                bestAction = action
+        return bestAction
+
+
+    def value(self, gameState: GameState, agentIndex: int, depth: int, alpha: float, beta: float) -> float:
+        if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            return self.evaluationFunction(gameState)
+        if agentIndex == 0:
+            return self.maxValue(gameState, agentIndex, depth, alpha, beta)
+        else:
+            return self.minValue(gameState, agentIndex, depth, alpha, beta)
+    
+    def maxValue(self, gameState: GameState, agentIndex: int, depth: int, alpha: float, beta: float) -> float:
+        v = float('-inf')
+        for action in gameState.getLegalActions(agentIndex):
+            successorGameState = gameState.generateSuccessor(agentIndex, action)
+            v = max(v, self.value(successorGameState, (agentIndex + 1) % gameState.getNumAgents(), depth + (agentIndex + 1) // gameState.getNumAgents(), alpha, beta))
+            if v > beta:
+                break
+            alpha = max(alpha, v)
+        return v
+    
+    def minValue(self, gameState: GameState, agentIndex: int, depth: int, alpha: float, beta: float) -> float:
+        v = float('inf')
+        for action in gameState.getLegalActions(agentIndex):
+            successorGameState = gameState.generateSuccessor(agentIndex, action)
+            v = min(v, self.value(successorGameState, (agentIndex + 1) % gameState.getNumAgents(), depth + (agentIndex + 1) // gameState.getNumAgents(), alpha, beta))
+            if v < alpha:
+                break
+            beta = min(beta, v)
+        return v
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
