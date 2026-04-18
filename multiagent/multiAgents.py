@@ -271,7 +271,45 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        # get legal actions for pacman
+        legalActions = gameState.getLegalActions(0)
+        # get the action that leads to the best value
+        bestAction = None
+        bestValue = float('-inf')
+        for action in legalActions:
+            successorGameState = gameState.generateSuccessor(0, action)
+            value = self.value(successorGameState, 1, 0)
+            if value > bestValue:
+                bestValue = value
+                bestAction = action
+        return bestAction
+
+
+    def value(self, gameState: GameState, agentIndex: int, depth: int):
+        if gameState.isWin() or gameState.isLose() or depth == self.depth:
+            return self.evaluationFunction(gameState)
+        if agentIndex == 0:
+            return self.maxValue(gameState, agentIndex, depth)
+        else:
+            return self.expValue(gameState, agentIndex, depth)
+    
+    def maxValue(self, gameState: GameState, agentIndex: int, depth: int):
+        v = float('-inf')
+        for action in gameState.getLegalActions(agentIndex):
+            successorGameState = gameState.generateSuccessor(agentIndex, action)
+            v = max(v, self.value(successorGameState, (agentIndex + 1) % gameState.getNumAgents(), depth + (agentIndex + 1) // gameState.getNumAgents()))
+        return v
+    
+    def expValue(self, gameState: GameState, agentIndex: int, depth: int):
+        v = 0
+        legalActions = gameState.getLegalActions(agentIndex)
+        prob = 1.0 / len(legalActions) if legalActions else 0
+        for action in legalActions:
+            successorGameState = gameState.generateSuccessor(agentIndex, action)
+            v += prob * self.value(successorGameState, (agentIndex + 1) % gameState.getNumAgents(), depth + (agentIndex + 1) // gameState.getNumAgents())
+        return v
+    
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
