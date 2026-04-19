@@ -319,7 +319,34 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    values: float = currentGameState.getScore()
+    # get reciprocal of closest food distance
+    foodList = currentGameState.getFood().asList()
+    pacmanPos = currentGameState.getPacmanPosition()
+    if len(foodList) > 0:
+        closestFoodDistance = min([manhattanDistance(pacmanPos, food) for food in foodList])
+        values += 0.5 / (closestFoodDistance + 1)
+    # get reciprocal of closest ghost distance
+    ghostStates = currentGameState.getGhostStates()
+    ghostDistances = [manhattanDistance(pacmanPos, ghostState.getPosition()) for ghostState in ghostStates]
+    if len(ghostDistances) > 0:
+        closestGhostDistance = min(ghostDistances)
+        if closestGhostDistance > 0:
+            values -= 1.5 / (closestGhostDistance + 1)
+    # get reciprocal of scared ghost distance, if scared
+    scaredTimes = [ghostState.scaredTimer for ghostState in ghostStates]
+    for ghostState, scaredTime in zip(ghostStates, scaredTimes):
+        if scaredTime > 0:
+            ghostDistance = manhattanDistance(pacmanPos, ghostState.getPosition())
+            if ghostDistance > 0:
+                values += 2.0 / (ghostDistance + 1)
+    # get reciprocal of closest capsule distance
+    capsuleList = currentGameState.getCapsules()
+    if capsuleList:
+        closestCapsuleDistance = min([manhattanDistance(pacmanPos, cap) for cap in capsuleList])
+        values += 1.5 / (closestCapsuleDistance + 1)  # Moderate weight
+    return values
 
 # Abbreviation
 better = betterEvaluationFunction
